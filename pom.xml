@@ -16,19 +16,14 @@
     <reactor.core.version>3.4.4</reactor.core.version>
     <lombok.version>1.18.22</lombok.version>
     <junit-jupiter-api.version>5.7.1</junit-jupiter-api.version>
-    <slf4j-api.version>1.7.32</slf4j-api.version>
+    <slf4j-api.version>2.0.3</slf4j-api.version>
+    <reactor-core.version>3.3.5.RELEASE</reactor-core.version>
   </properties>
 
   <dependencies>
     <dependency>
       <groupId>io.projectreactor</groupId>
       <artifactId>reactor-core</artifactId>
-      <version>${reactor.core.version}</version>
-    </dependency>
-
-    <dependency>
-      <groupId>io.projectreactor</groupId>
-      <artifactId>reactor-test</artifactId>
       <version>${reactor.core.version}</version>
     </dependency>
 
@@ -44,7 +39,21 @@
       <version>${slf4j-api.version}</version>
     </dependency>
 
+
+    <dependency>
+      <groupId>org.slf4j</groupId>
+      <artifactId>slf4j-simple</artifactId>
+      <version>${slf4j-api.version}</version>
+    </dependency>
+
+
     <!--Tests-->
+
+    <dependency>
+      <groupId>io.projectreactor</groupId>
+      <artifactId>reactor-test</artifactId>
+      <version>${reactor-core.version}</version>
+    </dependency>
 
     <dependency>
       <groupId>org.junit.jupiter</groupId>
