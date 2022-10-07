@@ -7,6 +7,7 @@ import org.junit.jupiter.api.Test;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import reactor.core.publisher.BaseSubscriber;
+import reactor.core.publisher.ConnectableFlux;
 import reactor.core.publisher.Flux;
 import reactor.test.StepVerifier;
 
@@ -161,6 +162,22 @@ class FluxTest {
     }
 
     @Test
+    void fluxSubscriberPrettyBackpressure() {
+
+        Flux<Integer> fluxNumbers = Flux.range(1, 10)
+            .log()
+            .limitRate(3);
+
+        fluxNumbers.subscribe(integer -> log.info("Number {}", integer));
+
+        log.info("-----------------------------------------------");
+
+        StepVerifier.create(fluxNumbers)
+            .expectNext(1,2,3,4,5,6, 7, 8, 9, 10)
+            .verifyComplete();
+    }
+
+    @Test
     void fluxSubscriberNumbersWithoutErrorWhenLimitRequestFor3() {
 
         Flux<Integer> fluxNumbers = Flux.range(1, 5)
@@ -215,6 +232,51 @@ class FluxTest {
     private Flux<Long> createInterval() {
         return Flux.interval(Duration.ofDays(1))
             .log();
+    }
+
+    @Test
+    void connectableFlux() throws InterruptedException {
+        ConnectableFlux<Integer> connectableFlux = Flux.range(1, 10)
+            .log()
+            .delayElements(Duration.ofMillis(100))
+            .publish();
+
+        connectableFlux.connect();
+
+//        log.info("Thread sleep for 300ms");
+//
+//        Thread.sleep(300);
+//
+//        //quando chega aqui alguns elementos ja foram publicados na linha 242 entao ele printa alguns apenas
+//        connectableFlux.subscribe(i -> log.info("Sub1 number {}", i));
+//
+//        log.info("Thread sleep for 200ms");
+//
+//        Thread.sleep(200);
+
+        StepVerifier
+            .create(connectableFlux)
+            .then(connectableFlux::connect)
+            .thenConsumeWhile(integer -> integer <= 5)
+            .expectNext(6,7,8,9,10)
+            .expectComplete()
+            .verify();
+    }
+
+    @Test
+    void connectableFluxAutoConnectWithTwoSubscribers() {
+        Flux<Integer> fluxAutoConnect = Flux.range(1, 5)
+            .log()
+            .delayElements(Duration.ofMillis(100))
+            .publish()
+            .autoConnect(2);
+
+        StepVerifier
+            .create(fluxAutoConnect) // 1 subscriber
+            .then(fluxAutoConnect::subscribe) // 2 subscriber
+            .expectNext(1,2,3,4,5)
+            .expectComplete()
+            .verify();
     }
 
 }
