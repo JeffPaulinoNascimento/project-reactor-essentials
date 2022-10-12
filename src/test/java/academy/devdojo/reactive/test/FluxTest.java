@@ -17,13 +17,13 @@ class FluxTest {
     @Test
     void fluxSubscriber() {
 
-         Flux<String> fluxString = Flux.just("Jeff", "William", "DevDojo", "Academy")
-             .log();
+        Flux<String> fluxString = Flux.just("Jeff", "William", "DevDojo", "Academy")
+            .log();
 
-         StepVerifier.create(fluxString)
-             .expectNext("Jeff", "William", "DevDojo", "Academy")
-             .verifyComplete();
-     }
+        StepVerifier.create(fluxString)
+            .expectNext("Jeff", "William", "DevDojo", "Academy")
+            .verifyComplete();
+    }
 
     @Test
     void fluxSubscriberNumbers() {
@@ -36,7 +36,7 @@ class FluxTest {
         log.info("-----------------------------------------------");
 
         StepVerifier.create(fluxNumbers)
-            .expectNext(1,2,3,4,5)
+            .expectNext(1, 2, 3, 4, 5)
             .verifyComplete();
     }
 
@@ -51,7 +51,7 @@ class FluxTest {
         log.info("-----------------------------------------------");
 
         StepVerifier.create(fluxNumbers)
-            .expectNext(1,2,3,4,5)
+            .expectNext(1, 2, 3, 4, 5)
             .verifyComplete();
     }
 
@@ -74,13 +74,14 @@ class FluxTest {
         log.info("-----------------------------------------------");
 
         StepVerifier.create(fluxNumbers)
-            .expectNext(1,2,3)
+            .expectNext(1, 2, 3)
             .expectError(IndexOutOfBoundsException.class)
             .verify();
     }
 
-    @Test //elementos retornados de 2 em 2
-    // quando publicar tudo que ele tem o onComplete é chamado
+    @Test
+        //elementos retornados de 2 em 2
+        // quando publicar tudo que ele tem o onComplete é chamado
     void fluxSubscriberNumbersUglyBackpressure() {
 
         Flux<Integer> fluxNumbers = Flux.range(1, 10)
@@ -126,7 +127,8 @@ class FluxTest {
             .verifyComplete();
     }
 
-    @Test //elementos retornados de 2 em 2
+    @Test
+        //elementos retornados de 2 em 2
         // quando publicar tudo que ele tem o onComplete é chamado
     void fluxSubscriberNumbersNotSoUglyBackpressure() {
 
@@ -135,8 +137,8 @@ class FluxTest {
 
         fluxNumbers.subscribe(new BaseSubscriber<>() {
 
-            private int count = 0;
             private final int requestCount = 2;
+            private int count = 0;
 
             @Override
             protected void hookOnSubscribe(Subscription subscription) {
@@ -173,7 +175,7 @@ class FluxTest {
         log.info("-----------------------------------------------");
 
         StepVerifier.create(fluxNumbers)
-            .expectNext(1,2,3,4,5,6, 7, 8, 9, 10)
+            .expectNext(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)
             .verifyComplete();
     }
 
@@ -196,7 +198,7 @@ class FluxTest {
         log.info("-----------------------------------------------");
 
         StepVerifier.create(fluxNumbers)
-            .expectNext(1,2,3)
+            .expectNext(1, 2, 3)
             .expectError(IndexOutOfBoundsException.class)
             .verify();
     }
@@ -258,7 +260,7 @@ class FluxTest {
             .create(connectableFlux)
             .then(connectableFlux::connect)
             .thenConsumeWhile(integer -> integer <= 5)
-            .expectNext(6,7,8,9,10)
+            .expectNext(6, 7, 8, 9, 10)
             .expectComplete()
             .verify();
     }
@@ -274,7 +276,7 @@ class FluxTest {
         StepVerifier
             .create(fluxAutoConnect) // 1 subscriber
             .then(fluxAutoConnect::subscribe) // 2 subscriber
-            .expectNext(1,2,3,4,5)
+            .expectNext(1, 2, 3, 4, 5)
             .expectComplete()
             .verify();
     }
