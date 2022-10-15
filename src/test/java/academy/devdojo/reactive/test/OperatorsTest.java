@@ -1,10 +1,5 @@
 package academy.devdojo.reactive.test;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.time.Duration;
-import java.util.List;
-import java.util.concurrent.atomic.AtomicLong;
 import lombok.extern.slf4j.Slf4j;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
@@ -12,6 +7,12 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 import reactor.core.scheduler.Schedulers;
 import reactor.test.StepVerifier;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.util.List;
+import java.util.concurrent.atomic.AtomicLong;
 
 @Slf4j
 class OperatorsTest {
@@ -296,16 +297,87 @@ class OperatorsTest {
 
     }
 
-    void flatMapOperator() {
+    @Test
+    void flatMapOperator() throws InterruptedException {
 
         Flux<String> flux1 = Flux.just("a", "b");
 
-//        flux1.
+        log.info("********** map ****************");
+
+        // para obter o de dentro ou seja um Flux<String> dever usar o flatmap
+        Flux<Flux<String>> fluxFlux = flux1.map(String::toUpperCase)
+                .map(this::findByName)
+                .log();
+
+        fluxFlux.subscribe(o -> log.info(o.toString()));
+
+        log.info("********** map ****************");
+
+        log.info("********** flatMap ****************");
+
+        Flux<String> flatMap =
+                flux1.map(String::toUpperCase)
+                        .flatMap(this::findByName)
+                        .log();
+
+        flatMap.subscribe(o -> log.info("strings: {} ", o));
+
+        log.info("********** flatMap ****************");
+
+        log.info("********** flatMap with delay ****************");
+        // flatmap é assincrono entao ele faz a busca do primeiro 'a' e ja busca o 'b',
+        // porem se demorar pra trazer o 'a' ele pode trazer o 'b' antes do 'a'
+        Flux<String> flatMapWithDelay =
+                flux1.map(String::toUpperCase)
+                        .flatMap(s -> findByNameWithDelayInElements(s, 100))
+                        .log();
+
+        flatMapWithDelay.subscribe(o -> log.info("strings: {} ", o));
+
+        Thread.sleep(5000);
+
+        log.info("********** flatMap with delay ****************");
+
+        StepVerifier
+                .create(flatMap)
+                .expectSubscription()
+                .expectNext("nameA1", "nameA2", "nameB1", "nameB2")
+                .verifyComplete();
+
+    }
+
+    @Test
+    void flatMapSequentialOperator() {
+
+        Flux<String> flux1 = Flux.just("a", "b");
+
+        log.info("********** flatMap with delay ****************");
+        // flatmap é assincrono entao ele faz a busca do primeiro 'a' e ja busca o 'b',
+        // porem se demorar pra trazer o 'a' ele pode trazer o 'b' antes do 'a'
+        // para trazer sequencial pode usar o flatMapSequential para manter a ordem de retorno
+        Flux<String> flatMapWithDelay =
+                flux1.map(String::toUpperCase)
+                        .flatMapSequential(s -> findByNameWithDelayInElements(s, 500))
+                        .log();
+
+        flatMapWithDelay.subscribe(o -> log.info("strings: {} ", o));
+
+        log.info("********** flatMap with delay ****************");
+
+        StepVerifier
+                .create(flatMapWithDelay)
+                .expectSubscription()
+                .expectNext("nameA1", "nameA2", "nameB1", "nameB2")
+                .verifyComplete();
 
     }
 
     public Flux<String> findByName(String name) {
         return name.equals("A") ? Flux.just("nameA1", "nameA2") : Flux.just("nameB1", "nameB2");
+    }
+
+    public Flux<String> findByNameWithDelayInElements(String name, int delay) {
+        return name.equals("A") ? Flux.just("nameA1", "nameA2").delayElements(Duration.ofMillis(delay))  : Flux.just("nameB1", "nameB2");
     }
 
     private Flux<Object> emptyFlux() {
